@@ -21,3 +21,9 @@ class AddToCartPopupLocators(object):
 class PostSignInPageLocators(object):
     EMAIL_INPUT=(By.NAME,"email")
     CONTINUE_BUTTON=(By.XPATH,"//span[text()='Continue']")
+    
+class CheckOutPageLocators(object):
+    PLACE_ORDER_BUTTON=(By.XPATH,"//button[@class='btn  regular-button regular-main-button place-order submit']")
+    EMAIL_TEXT_BOX=(By.ID,"email")
+    DELIVERY_METHOD_LOCAL_PICKUP=(By.ID,"method5")
+    PAYMENT_METHOD_DEMO=(By.ID,"pmethod11")

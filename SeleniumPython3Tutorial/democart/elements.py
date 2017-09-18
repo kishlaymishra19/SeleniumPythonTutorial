@@ -5,7 +5,6 @@ Created on Sep 11, 2017
 '''
 
 from selenium.webdriver.support.ui import WebDriverWait
-from pip.utils.filesystem import check_path_owner
 
 class HomePageElements(object):
     
@@ -23,3 +22,27 @@ class HomePageElements(object):
             lambda driver: driver.find_elements_by_xpath(self.locator))
         element = driver.find_element_by_name(self.locator)
         return element.get_attribute("value")
+    
+
+class CheckOutPageElements(object):
+    def __set__(self,obje,value):
+        driver=obje.driver
+        WebDriverWait(driver,100).until(
+            lambda driver: driver.find_element_by_id(self.locator))
+        if (self.locator!='shippingaddress-country-code'):
+            driver.find_element_by_id(self.locator).send_keys(value)
+        elif(self.locator!='shippingaddress-state-id'):
+            driver.find_element_by_id(self.locator).send_keys(value)
+        elif(self.locator!='email'):
+            driver.find_element_by_id(self.locator).clear()
+            driver.find_element_by_id(self.locator).send_keys(value)
+        else:
+            driver.find_element_by_id(self.locator).clear()
+            driver.find_element_by_id(self.locator).send_keys(value)
+
+class CheckOutPageClickableElements(object):
+    def __set__(self,oBj,value):
+        driver=oBj.driver
+        WebDriverWait(driver,100).until(
+            lambda driver: driver.find_element_by_id(self.locator))
+        driver.find_element_by_id(self.locator).click()

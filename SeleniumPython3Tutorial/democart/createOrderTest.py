@@ -6,6 +6,7 @@ Created on Sep 11, 2017
 import unittest
 from selenium import webdriver
 import pages
+from excelUtils import Excel_Data
 
 class Test(unittest.TestCase):
 
@@ -21,7 +22,7 @@ class Test(unittest.TestCase):
     @classmethod
     def tearDownClass(init):
         print("Test Ended")
-#        init.driver.close()
+        init.driver.close()
 
     def test1PageLaunch(self):
         homePage=pages.HomePage(self.driver)
@@ -46,6 +47,24 @@ class Test(unittest.TestCase):
     def test5MoveToCheckOut(self):
         sp=pages.SignInPage(self.driver)
         sp.continue_to_checkout()
+        
+    def test6Checkout(self):
+        cp=pages.CheckOutPage(self.driver)
+        cp.enter_email_id(Excel_Data.get_data(self, 'Emailid'))
+        #cp.enter_email_id("ok@abc.com")
+        cp.enter_first=Excel_Data.get_data(self, 'FirstName')
+        cp.enter_last=Excel_Data.get_data(self, 'LastName')
+        cp.enter_add=Excel_Data.get_data(self, 'Address')
+        cp.enter_city=Excel_Data.get_data(self, 'City')
+        cp.enter_country=Excel_Data.get_data(self, 'Country')
+        cp.enter_state=Excel_Data.get_data(self, 'State')
+        cp.enter_zip=Excel_Data.get_data(self, 'Pincode')
+        cp.enter_phone=Excel_Data.get_data(self, 'PhoneNumber')
+        cp.local_pickup()
+        cp.payment_method_demo()
+        cp.place_order="this is my order note"   
+        #cp.place_order()    
+        
     
        
 if __name__ == "__main__":
