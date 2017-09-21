@@ -14,9 +14,11 @@ from locator import PostSignInPageLocators
 from locator import CheckOutPageLocators
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import WebDriverException
 import time
+from excelUtils import Excel_Data
 
 class SearchTextElement(HomePageElements):
     locator="//input[@placeholder='Search items...']"
@@ -51,7 +53,7 @@ class Enter_Phone(CheckOutPageElements):
 class Bill_Add(CheckOutPageElements):
     locator='same_address'
 
-class Place_Order(CheckOutPageElements):
+class Place_Order_Note(CheckOutPageElements):
     locator='place_order_note'    
 class BasePage(object):
     def __init__(self, driver):
@@ -74,9 +76,7 @@ class SearchResultsPage(BasePage):
     """Search results page action methods come here"""
 
     def is_results_found(self):
-        # Probably should search for this text in the specific page
-        # element, but as for now it works fine
-        return "0 products found" not in self.driver.page_source
+        return "0 products found" in self.driver.page_source
     
 
 class AddItemToCart(BasePage):
@@ -99,12 +99,6 @@ class SignInPage(BasePage):
         self.driver.find_element(*PostSignInPageLocators.CONTINUE_BUTTON).click()
         
 class CheckOutPage(BasePage):
-    
-    def wait_for_loader(self):
-        element = WebDriverWait(self.driver, 100).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR,"div.wait-block-overlay"))
-    )
-
     enter_email=Enter_Email()
     enter_first=Enter_First()
     enter_last=Enter_Last()
@@ -114,17 +108,49 @@ class CheckOutPage(BasePage):
     enter_state=Enter_State()
     enter_zip=Enter_Zip()
     enter_phone=Enter_Phone()
+    place_order_note=Place_Order_Note()
+    
     bill_add=Bill_Add()
+    def wait_for_loader(self):
+        try:
+            print("Checking for loader")
+            WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR,"div.wait-block-overlay")))
+        except Exception:
+            print("Loader not found")
+        else:
+            print("Loader found")
     def place_order(self):
-        self.driver.find_element(*CheckOutPageLocators.PLACE_ORDER_BUTTON).click()
+        try:
+            CheckOutPage.wait_for_loader(self)
+            WebDriverWait(self.driver, 10).until(EC.invisibility_of_element_located((By.XPATH,"//button[@class='btn  regular-button regular-main-button place-order submit']/span")))
+            CheckOutPage.wait_for_loader(self)
+            self.driver.find_element(*CheckOutPageLocators.PLACE_ORDER_BUTTON).click()
+            CheckOutPage.wait_for_loader(self)
+            CheckOutPage.wait_for_loader(self)
+        except WebDriverException:
+            CheckOutPage.wait_for_loader(self)
+            self.driver.find_element(*CheckOutPageLocators.PLACE_ORDER_BUTTON).click()
+            CheckOutPage.wait_for_loader(self)
+        
     def enter_email_id(self,val):
         self.driver.find_element(*CheckOutPageLocators.EMAIL_TEXT_BOX).clear()
         self.driver.find_element(*CheckOutPageLocators.EMAIL_TEXT_BOX).send_keys(val)
     def local_pickup(self):
         deliver_button=self.driver.find_element(*CheckOutPageLocators.DELIVERY_METHOD_LOCAL_PICKUP)
-        deliver_button.send_keys(Keys.PAGE_UP)
-        time.sleep(10)
-        deliver_button.click()
-        time.sleep(10)
+        self.driver.execute_script("return arguments[0].scrollIntoView();", deliver_button)
+        self.driver.execute_script("window.scrollBy(0, -150);")
+        self.driver.find_element(*CheckOutPageLocators.DELIVERY_METHOD_LOCAL_PICKUP).click()
+        CheckOutPage.wait_for_loader(self)
     def payment_method_demo(self):
+        time.sleep(5)
+        CheckOutPage.wait_for_loader(self)
+        WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.XPATH,"//span[text()='X-Payments DEMO']")))
+        CheckOutPage.wait_for_loader(self)
         self.driver.find_element(*CheckOutPageLocators.PAYMENT_METHOD_DEMO).click()
+        CheckOutPage.wait_for_loader(self)
+        
+class Invoice_Page(BasePage):
+    def update_invoice_number(self):
+        val=self.driver.find_element_by_class_name('invoice').text
+        Excel_Data.write_result(self, val)
+        print("Entered excel data: "+val)

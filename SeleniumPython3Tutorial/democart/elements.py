@@ -45,4 +45,6 @@ class CheckOutPageClickableElements(object):
         driver=oBj.driver
         WebDriverWait(driver,100).until(
             lambda driver: driver.find_element_by_id(self.locator))
+        self.driver.execute_script("return arguments[0].scrollIntoView();", driver.find_element_by_id(self.locator))
+        self.driver.execute_script("window.scrollBy(0, -150);")
         driver.find_element_by_id(self.locator).click()
